@@ -55,21 +55,23 @@ InverseSuffixArray(SuffixArray(DNA))
 
 # Task 3
 LCPArray <- function(text, SA, ISA){
-  # text - DNAString representing analyzed string
-  # SA - vector of integers representing a suffix array
-  # ISA - vector of integers representing an inverse suffix array
   text <- as.character(text)
+  n <- nchar(text)
+  
   LCP <- integer(length(SA) + 1)
   LCP[1] <- -1
   LCP[length(SA) + 1] <- -1
   
   l <- 0
   
-  for (i in 1:length(SA)){
+  for (i in 1:n){
     j <- ISA[i]
     if (j > 1){
-      k <- SA[j-1]
-      while (substring(text, k + l, k + l) == substring(text, SA[j] + l, SA[j] + l)){
+      k <- SA[j - 1]
+      while (i + l <= n &&
+             k + l <= n &&
+             substring(text, i + l, i + l) ==
+             substring(text, k + l, k + l)) {
         l <- l + 1
       }
       LCP[j] <- l
@@ -77,10 +79,8 @@ LCPArray <- function(text, SA, ISA){
     }
   }
   
-  
-  return (LCP) # vector of integers
+  return(LCP)
 }
-
 
 text <- DNAString("CTAATAATG")
 SA <- SuffixArray(DNA)
@@ -88,47 +88,55 @@ ISA <- InverseSuffixArray(SA)
 print(LCPArray(text, SA, ISA))
 
 
-# Task 4 - DODĚLAT
+# Task 4
 BinarySearchSA <- function(pattern, text, SA){
-  # pattern - DNAString representing a pattern to be found
-  # text - DNAString representing a text to be searched
-  # SA - vector of integers representing a suffix array of text
-
+  
   text <- as.character(text)
   pattern <- as.character(pattern)
+  m <- nchar(pattern)
+  
   minIndex <- 1
   maxIndex <- length(SA)
+  
+  # ---- find First ----
   while (minIndex < maxIndex){
     midlIndex <- floor((minIndex + maxIndex) / 2)
     suffix <- substring(text, SA[midlIndex], nchar(text))
-    if (pattern <= suffix){
+    prefix <- substr(suffix, 1, m)
+    
+    if (pattern <= prefix){
       maxIndex <- midlIndex
+    } else {
+      minIndex <- midlIndex + 1
     }
-    else{
-    minIndex <- midlIndex + 1
   }
-  }
+  
   First <- minIndex
   maxIndex <- length(SA)
+  
+  # ---- find Last ----
   while (maxIndex > minIndex){
     midlIndex <- floor((minIndex + maxIndex) / 2)
     suffix <- substring(text, SA[midlIndex], nchar(text))
-    if (suffix <= pattern){
+    prefix <- substr(suffix, 1, m)
+    
+    if (prefix <= pattern){
       minIndex <- midlIndex + 1
-    }
-    else{
+    } else {
       maxIndex <- midlIndex
     }
   }
-  Last <- maxIndex - 1
-  if (Last < First){
-    return('Pattern does not appear in text')
-  }
-  else{
-    return(c(First, Last)) # A vector of two integers (the first and the last indexes of suffix array, where the pattern was found
-  }
   
+  Last <- maxIndex - 1
+  
+  if (Last < First){
+    return("Pattern does not appear in text")
+  } else {
+    return(c(First, Last))
+  }
 }
+
+
 
 
 text <- DNAString("CTAATAATG")
